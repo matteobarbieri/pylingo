@@ -2,6 +2,8 @@ import subprocess
 
 from colors import bcolors
 
+from tempfile import NamedTemporaryFile
+
 
 def paint_red(s):
     return f"{bcolors.FAIL}{s}{bcolors.ENDC}"
@@ -51,13 +53,24 @@ def check_next_line(proc, cur_line):
     return inp_add, out_add
 
 
-def main():
+def check_solution(input_text: str, solution: str) -> None:
 
-    # git diff --word-diff=porcelain --word-diff-regex=. can ref | tail -n +6
-    # subprocess.call()
+    with NamedTemporaryFile("w+") as f_inp, NamedTemporaryFile("w+") as f_sol:
+
+        f_inp.write(input_text)
+        f_inp.flush()
+
+        f_sol.write(solution)
+        f_sol.flush()
+
+        check_solution_files(f_inp.name, f_sol.name)
+
+
+def check_solution_files(input_file, sol_file):
 
     cmd_string = (
-        "git diff --no-index --word-diff=porcelain --word-diff-regex=. can ref"
+        "git diff --no-index --word-diff=porcelain --word-diff-regex=. "
+        f"{input_file} {sol_file}"
         " | tail -n +6 | head -n -1")  # Cut the first 6 and last 1 lines
 
     # print(cmd_string)
@@ -98,4 +111,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    check_solution("AAA", "AABA")
+    # main()

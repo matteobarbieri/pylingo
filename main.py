@@ -5,6 +5,8 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
+from wd import check_solution
+
 import random
 
 from colors import bcolors
@@ -91,17 +93,20 @@ def main():
     # print(data_row)
 
     prompt = data_row[0]
-    right_answer = data_row[1].strip()
+    # right_answer = data_row[1].strip()
+    right_answer = " ".join([x.strip() for x in data_row[1:n_fields+1]]).lower()
 
     print(SHEETS[0])
     print(f"What's the translation of {prompt}?")
 
-    answer = input().strip()
+    answer = input().strip().lower()
     # print(answer)
     if answer == right_answer:
         print(f"{bcolors.OKGREEN}Correct!{bcolors.ENDC}")
     else:
-        print(f"{bcolors.FAIL}Wrong, correct answer was {right_answer}{bcolors.ENDC}")
+        print(f"{bcolors.FAIL}Wrong!{bcolors.ENDC}")
+        check_solution(answer, right_answer)
+        # print(f"{bcolors.FAIL}Wrong, correct answer was {right_answer}{bcolors.ENDC}")
 
     return
 
