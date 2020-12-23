@@ -23,46 +23,63 @@ SAMPLE_RANGE_NAME = 'Basics!A2:E'
 SHEETS = [
     'Nouns',
     'Verbs - present',
-    'Verbs - past',
     'Adjectives',
+    'Verbs - past',
 ]
 
-# def parse_args():
+# Simplified version
+SHEETS = SHEETS[:1]
 
-    # parser = argparse.ArgumentParser()
 
-    # parser.add_argument('--simple', default=False)
+def parse_args():
 
-    # args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        '--n-questions', type=int, default=3,
+        help="Number of questions per category", metavar="N_QUESTIONS")
+
+    parser.add_argument(
+        '--lines-per-sheet', type=int, default=None,
+        help="Number of terms used per category", metavar="LINES_PER_SHEET")
+
+    args = parser.parse_args()
+
+    return args
+
 
 def fetch_data(sheet_name, sheets_handle):
 
-    sheet_metadata_range = SHEETS[0] + "!A1:B1"
+    sheet_metadata_range = sheet_name + "!A1:B1"
 
-    result = sheets_handle.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                range=sheet_metadata_range).execute()
+    result = sheets_handle.values().get(
+        spreadsheetId=SAMPLE_SPREADSHEET_ID, range=sheet_metadata_range).execute()
 
     values = result.get('values', [])
     values = [int(item) for sublist in values for item in sublist]
     n_fields, n_rows = values
 
-    sheet_data_range = SHEETS[0] + f"!A3:{chr(ord('A')+n_fields)}{n_rows+2}"
+    sheet_data_range = sheet_name + f"!A3:{chr(ord('A')+n_fields)}{n_rows+2}"
 
     # print(sheet_data_range)
 
-    result = sheets_handle.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                range=sheet_data_range).execute()
+    result = sheets_handle.values().get(
+        spreadsheetId=SAMPLE_SPREADSHEET_ID, range=sheet_data_range).execute()
+
     data = result.get('values', [])
 
     return data
 
-    pass
 
 def main():
     """Shows basic usage of the Sheets API.
     Prints values from a sample spreadsheet.
     """
+
+    args = parse_args()
+
     creds = None
+
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
@@ -104,19 +121,22 @@ def main():
         # print (sheet_id)
     """
 
-    data = fetch_data(SHEETS[0], sheets_handle)
-    n_fields = len(data[0])
+    for s in SHEETS:
 
-    # all_idx = list(range(n_rows))
-    all_idx = list(range(len(data)))
-    random.shuffle(all_idx)
+        data = fetch_data(s, sheets_handle)
+        n_fields = len(data[0])
 
-    # Pick a limited number of questions
-    idx = all_idx[:3]
+        if args.lines_per_sheet is None:
+            all_idx = list(range(len(data)))
+        else:
+            all_idx = list(range(args.lines_per_sheet))
 
+        random.shuffle(all_idx)
 
+        # Pick a limited number of questions
+        idx = all_idx[:args.n_questions]
 
-    ask_questions(data, idx, n_fields)
+        ask_questions(data, idx, n_fields)
 
     return
 
@@ -142,6 +162,7 @@ def main():
             # # Print columns A and E, which correspond to indices 0 and 4.
             # print('%s, %s' % (row[0], row[4]))
 
+
 def ask_questions(data, idx, n_fields):
 
     for row_idx in idx:
@@ -162,6 +183,7 @@ def ask_questions(data, idx, n_fields):
         else:
             print(f"{bcolors.FAIL}Wrong!{bcolors.ENDC}")
             check_solution(answer, right_answer)
+
 
 if __name__ == '__main__':
     main()
