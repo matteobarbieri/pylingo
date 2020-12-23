@@ -1,4 +1,4 @@
 #!/bin/bash
 
 source .env
-python main.py
+python main.py $@
