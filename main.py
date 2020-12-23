@@ -9,6 +9,8 @@ from wd import check_solution
 
 import random
 
+import argparse
+
 from colors import bcolors
 
 # If modifying these scopes, delete the file token.pickle.
@@ -19,11 +21,42 @@ SAMPLE_SPREADSHEET_ID = os.environ['SAMPLE_SPREADSHEET_ID']
 SAMPLE_RANGE_NAME = 'Basics!A2:E'
 
 SHEETS = [
+    'Nouns',
     'Verbs - present',
     'Verbs - past',
     'Adjectives',
 ]
 
+# def parse_args():
+
+    # parser = argparse.ArgumentParser()
+
+    # parser.add_argument('--simple', default=False)
+
+    # args = parser.parse_args()
+
+def fetch_data(sheet_name, sheets_handle):
+
+    sheet_metadata_range = SHEETS[0] + "!A1:B1"
+
+    result = sheets_handle.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+                                range=sheet_metadata_range).execute()
+
+    values = result.get('values', [])
+    values = [int(item) for sublist in values for item in sublist]
+    n_fields, n_rows = values
+
+    sheet_data_range = SHEETS[0] + f"!A3:{chr(ord('A')+n_fields)}{n_rows+2}"
+
+    # print(sheet_data_range)
+
+    result = sheets_handle.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+                                range=sheet_data_range).execute()
+    data = result.get('values', [])
+
+    return data
+
+    pass
 
 def main():
     """Shows basic usage of the Sheets API.
@@ -51,7 +84,7 @@ def main():
     service = build('sheets', 'v4', credentials=creds)
 
     # Call the Sheets API
-    sheet = service.spreadsheets()
+    sheets_handle = service.spreadsheets()
 
     """
     sheet_metadata = sheet.get(spreadsheetId=SAMPLE_SPREADSHEET_ID).execute()
@@ -71,32 +104,17 @@ def main():
         # print (sheet_id)
     """
 
-    sheet_metadata_range = SHEETS[0] + "!A1:B1"
+    data = fetch_data(SHEETS[0], sheets_handle)
+    n_fields = len(data[0])
 
-    result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                range=sheet_metadata_range).execute()
-    values = result.get('values', [])
-    values = [int(item) for sublist in values for item in sublist]
-    n_fields, n_rows = values
-
-    sheet_data_range = SHEETS[0] + f"!A3:{chr(ord('A')+n_fields)}{n_rows+2}"
-
-    # print(sheet_data_range)
-
-    result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                range=sheet_data_range).execute()
-    data = result.get('values', [])
-
-    # print(SHEETS[0])
-    # print(data)
-    # print(len(data))
-
-
-    all_idx = list(range(n_rows))
+    # all_idx = list(range(n_rows))
+    all_idx = list(range(len(data)))
     random.shuffle(all_idx)
 
     # Pick a limited number of questions
     idx = all_idx[:3]
+
+
 
     ask_questions(data, idx, n_fields)
 
