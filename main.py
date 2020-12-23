@@ -18,7 +18,11 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 SAMPLE_SPREADSHEET_ID = os.environ['SAMPLE_SPREADSHEET_ID']
 SAMPLE_RANGE_NAME = 'Basics!A2:E'
 
-SHEETS = ['Verbs - present']
+SHEETS = [
+    'Verbs - present',
+    'Verbs - past',
+    'Adjectives',
+]
 
 
 def main():
@@ -75,8 +79,6 @@ def main():
     values = [int(item) for sublist in values for item in sublist]
     n_fields, n_rows = values
 
-    # random.randint(
-
     sheet_data_range = SHEETS[0] + f"!A3:{chr(ord('A')+n_fields)}{n_rows+2}"
 
     # print(sheet_data_range)
@@ -85,53 +87,63 @@ def main():
                                 range=sheet_data_range).execute()
     data = result.get('values', [])
 
+    # print(SHEETS[0])
     # print(data)
     # print(len(data))
 
-    row_idx = random.randint(0, n_rows)
-    data_row = data[row_idx]
-    # print(data_row)
 
-    prompt = data_row[0]
-    # right_answer = data_row[1].strip()
-    right_answer = " ".join([x.strip() for x in data_row[1:n_fields+1]]).lower()
+    all_idx = list(range(n_rows))
+    random.shuffle(all_idx)
 
-    print(SHEETS[0])
-    print(f"What's the translation of {prompt}?")
+    # Pick a limited number of questions
+    idx = all_idx[:3]
 
-    answer = input().strip().lower()
-    # print(answer)
-    if answer == right_answer:
-        print(f"{bcolors.OKGREEN}Correct!{bcolors.ENDC}")
-    else:
-        print(f"{bcolors.FAIL}Wrong!{bcolors.ENDC}")
-        check_solution(answer, right_answer)
-        # print(f"{bcolors.FAIL}Wrong, correct answer was {right_answer}{bcolors.ENDC}")
+    ask_questions(data, idx, n_fields)
 
     return
 
-    cell_range = SHEETS[0] + "!A1:B4"
+    # cell_range = SHEETS[0] + "!A1:B4"
 
-    result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                range=cell_range).execute()
-    values = result.get('values', [])
+    # result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+                                # range=cell_range).execute()
+    # values = result.get('values', [])
 
-    print(values)
+    # print(values)
 
-    return
+    # return
 
-    result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                range=SAMPLE_RANGE_NAME).execute()
-    values = result.get('values', [])
+    # result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+                                # range=SAMPLE_RANGE_NAME).execute()
+    # values = result.get('values', [])
 
-    if not values:
-        print('No data found.')
-    else:
-        print('Name, Major:')
-        for row in values:
-            # Print columns A and E, which correspond to indices 0 and 4.
-            print('%s, %s' % (row[0], row[4]))
+    # if not values:
+        # print('No data found.')
+    # else:
+        # print('Name, Major:')
+        # for row in values:
+            # # Print columns A and E, which correspond to indices 0 and 4.
+            # print('%s, %s' % (row[0], row[4]))
 
+def ask_questions(data, idx, n_fields):
+
+    for row_idx in idx:
+        data_row = data[row_idx]
+        # print(data_row)
+
+        prompt = data_row[0]
+        # right_answer = data_row[1].strip()
+        right_answer = " ".join([x.strip() for x in data_row[1:n_fields+1]]).lower()
+
+        print(f"What's the translation of {prompt}?")
+
+        answer = input().strip().lower()
+
+        print(50*"=")
+        if answer == right_answer:
+            print(f"{bcolors.OKGREEN}Correct!{bcolors.ENDC}")
+        else:
+            print(f"{bcolors.FAIL}Wrong!{bcolors.ENDC}")
+            check_solution(answer, right_answer)
 
 if __name__ == '__main__':
     main()
